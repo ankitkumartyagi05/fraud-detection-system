@@ -8,13 +8,9 @@
     />
     <meta name="theme-color" content="#050508" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta
-      name="apple-mobile-web-app-status-bar-style"
-      content="black-translucent"
-    />
-    <title>FraudShield AI - Real-Time Protection</title>
+    <title>FraudShield AI - Financial Security</title>
 
-    <!-- Preconnect for Performance -->
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -22,7 +18,7 @@
       rel="stylesheet"
     />
 
-    <!-- Bootstrap CSS -->
+    <!-- Bootstrap -->
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -36,40 +32,30 @@
     <div id="preloader">
       <div class="loader-logo">FRAUDSHIELD</div>
       <div class="loader-bar"><div class="loader-progress"></div></div>
-      <p class="loader-status mt-3">Initializing Security Modules...</p>
+      <p class="loader-status">Initializing Security Core...</p>
     </div>
 
-    <!-- ATTENTION POPUP (Threat Alert) -->
-    <div
-      id="attentionModal"
-      class="attention-overlay"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="attTitle"
-    >
-      <div class="attention-box">
+    <!-- RESULT POPUP -->
+    <div id="resultModal" class="modal-overlay">
+      <div class="modal-box" id="modalContent">
         <div class="ring-container">
           <div class="pulse-ring"></div>
           <div class="pulse-ring delay-1"></div>
           <div class="pulse-ring delay-2"></div>
-          <div class="alert-icon">&#9888;</div>
+          <div class="modal-icon" id="modalIcon">&#9888;</div>
         </div>
-        <h1 id="attTitle" class="attention-title">ATTENTION</h1>
-        <p class="attention-text">Potential Fraud Detected!</p>
-        <p class="attention-desc" id="threatDesc">
+        <h1 class="modal-title" id="modalTitle">ATTENTION</h1>
+        <p class="modal-text" id="modalText">Threat Detected!</p>
+        <p class="modal-desc" id="modalDesc">
           This message contains malicious patterns.
         </p>
-        <button
-          class="btn-main btn-danger-c"
-          id="closeAttention"
-          aria-label="Close Alert"
-        >
+        <button class="btn-main btn-modal" id="closeModalBtn">
           Acknowledge
         </button>
       </div>
     </div>
 
-    <!-- BACKGROUND LAYER -->
+    <!-- BACKGROUND -->
     <div class="bg-layer">
       <div class="grid-bg"></div>
       <div class="gradient-orb orb-1"></div>
@@ -97,11 +83,11 @@
     <!-- APP CONTAINER -->
     <div id="app-container" class="app-container">
       <div class="page-wrapper" id="pageWrapper">
-        <!-- PAGE 1: HOME -->
+        <!-- SECTION 1: HOME -->
         <section class="app-page" id="home">
           <div class="page-content home-center">
             <div class="badge mb-3">System Activated</div>
-            <h1 class="glitch-text">
+            <h1 class="hero-title">
               Financial <span class="gradient-text">Security</span>
             </h1>
             <p class="hero-desc">
@@ -125,10 +111,11 @@
           </div>
         </section>
 
-        <!-- PAGE 2: SCANNER -->
+        <!-- SECTION 2: SCANNER -->
         <section class="app-page" id="scanner">
           <div class="page-content">
             <div class="row w-100">
+              <!-- Input Area -->
               <div class="col-lg-5">
                 <h2 class="page-title">
                   SMS <span class="gradient-text">Scanner</span>
@@ -137,7 +124,6 @@
                   <textarea
                     id="msgInput"
                     placeholder="Paste message here..."
-                    aria-label="Message Input"
                   ></textarea>
                   <div class="quick-chips">
                     <div
@@ -152,8 +138,11 @@
                     >
                       KYC
                     </div>
-                    <div class="chip" data-msg="You won a lottery! Click here.">
-                      Lottery
+                    <div
+                      class="chip"
+                      data-msg="Hi, meeting at 5pm. See you there."
+                    >
+                      Safe Test
                     </div>
                   </div>
                   <button
@@ -165,26 +154,17 @@
                 </div>
               </div>
 
+              <!-- Process Area -->
               <div class="col-lg-6 offset-lg-1">
-                <div class="glass-panel" style="min-height: 350px">
+                <div class="glass-panel process-panel">
                   <div
                     class="d-flex justify-content-between align-items-center mb-3"
                   >
-                    <h5
-                      style="
-                        font-family: var(--font-tech);
-                        color: var(--rgb-cyan);
-                        margin: 0;
-                      "
-                    >
-                      Process
-                    </h5>
-                    <span class="status-indicator" id="apiStatus"
-                      >Demo Mode</span
-                    >
+                    <h5 class="process-title">Detection Process</h5>
+                    <span class="status-tag" id="apiStatus">Demo Mode</span>
                   </div>
                   <div class="workflow-list" id="workflowContainer">
-                    <!-- Steps generated by JS -->
+                    <!-- Steps Rendered via JS -->
                   </div>
                 </div>
               </div>
@@ -192,7 +172,7 @@
           </div>
         </section>
 
-        <!-- PAGE 3: THREATS -->
+        <!-- SECTION 3: THREATS -->
         <section class="app-page" id="threats">
           <div class="page-content">
             <div class="section-header">
@@ -200,13 +180,11 @@
                 Common <span class="gradient-text">Scams</span>
               </h2>
             </div>
-            <div class="scams-grid" id="scamsGrid">
-              <!-- Content generated by JS -->
-            </div>
+            <div class="scams-grid" id="scamsGrid"></div>
           </div>
         </section>
 
-        <!-- PAGE 4: FEATURES -->
+        <!-- SECTION 4: FEATURES -->
         <section class="app-page" id="features">
           <div class="page-content">
             <div class="row w-100 align-items-center">
@@ -214,26 +192,22 @@
                 <h2 class="page-title text-start">
                   How it <span class="gradient-text">Works</span>
                 </h2>
-                <p class="text-muted">Advanced 7-step security protocol.</p>
+                <p class="text-muted">Advanced security protocol.</p>
               </div>
               <div class="col-lg-7">
-                <div class="feature-list" id="featureList">
-                  <!-- Content generated by JS -->
-                </div>
+                <div class="feature-list" id="featureList"></div>
               </div>
             </div>
           </div>
         </section>
 
-        <!-- PAGE 5: DASHBOARD -->
+        <!-- SECTION 5: STATS -->
         <section class="app-page" id="stats">
           <div class="page-content">
             <h2 class="page-title">
               Protection <span class="gradient-text">Stats</span>
             </h2>
-            <div class="stats-row" id="statsRow">
-              <!-- Content generated by JS -->
-            </div>
+            <div class="stats-row" id="statsRow"></div>
             <div class="chart-box">
               <canvas id="mainChart"></canvas>
             </div>
@@ -242,10 +216,8 @@
       </div>
     </div>
 
-    <!-- PAGE INDICATOR (Mobile Dots) -->
-    <div class="page-indicator" id="pageIndicator">
-      <!-- Dots generated by JS -->
-    </div>
+    <!-- PAGE INDICATOR -->
+    <div class="page-indicator" id="pageIndicator"></div>
 
     <!-- SCRIPTS -->
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
