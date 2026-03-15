@@ -1,36 +1,36 @@
 /* ================================================
-   FRAUD SHIELD AI - PRODUCTION JS
-   Architecture: Modular | Backend Ready | Mobile Optimized
+   FRAUD SHIELD AI - FULL WORKING FRONTEND JS
 =============================================== */
 
-// Immediate function to avoid global scope pollution
 (function () {
     'use strict';
 
     // ================================================
-    //   1. CONFIGURATION & STATE
+    //   1. CONFIGURATION
     // ================================================
     const Config = {
-        API_BASE_URL: 'http://localhost:5000', // Change this to your deployed backend URL
+        // CHANGE THIS URL when deploying backend (e.g., to Render.com)
+        // Example: 'https://your-app.onrender.com'
+        API_BASE_URL: 'http://localhost:5000',
+
         PAGES: ['home', 'scanner', 'threats', 'features', 'stats'],
-        ANIMATION_SPEED: 600,
-        TIMEOUT: 5000
+        ANIMATION_SPEED: 600
     };
 
     const State = {
         currentPage: 0,
         isAnimating: false,
-        isLoading: false,
-        backendAvailable: false, // Will be checked on load
-        statsAnimated: false
+        statsAnimated: false,
+        backendAvailable: false
     };
 
     // ================================================
-    //   2. UTILITY FUNCTIONS
+    //   2. UTILITIES
     // ================================================
     const Utils = {
-        // Simulated Data for Demo Mode
-        getDemoData: {
+        sleep: (ms) => new Promise(resolve => setTimeout(resolve, ms)),
+
+        Data: {
             scams: [
                 { icon: '⚡', title: 'Electricity Scam', desc: 'Threatens power cut via malicious link.', tag: 'High Risk' },
                 { icon: '🏦', title: 'Bank KYC', desc: 'Steals credentials via fake forms.', tag: 'Phishing' },
@@ -44,33 +44,9 @@
                 { icon: '🚫', title: 'Detect Fraud', desc: 'AI classification' },
                 { icon: '🔗', title: 'Identify Links', desc: 'URL reputation' },
                 { icon: '🔔', title: 'Alert User', desc: 'Instant notification' },
-                { icon: ' Quarantine', title: 'Block', desc: 'Isolate threat' }
+                { icon: '📥', title: 'Quarantine', desc: 'Isolate threat' }
             ],
             stats: { scanned: 15420, frauds: 3210, blocked: 980 }
-        },
-
-        // Render HTML Templates
-        render: (containerId, html) => {
-            const container = document.getElementById(containerId);
-            if (container) container.innerHTML = html;
-        },
-
-        // Check Backend Health
-        checkBackend: async () => {
-            try {
-                // Try to fetch a lightweight endpoint or root
-                const response = await fetch(Config.API_BASE_URL + '/', { method: 'GET', mode: 'cors' });
-                if (response.ok) {
-                    State.backendAvailable = true;
-                    console.log('Backend Connected.');
-                    document.getElementById('apiStatus').innerText = 'Live API';
-                    document.getElementById('apiStatus').style.background = 'rgba(0, 255, 136, 0.2)';
-                    document.getElementById('apiStatus').style.color = '#00ff88';
-                }
-            } catch (error) {
-                console.log('Backend not found. Running in Demo Mode.');
-                State.backendAvailable = false;
-            }
         }
     };
 
@@ -78,14 +54,10 @@
     //   3. CORE MODULES
     // ================================================
 
-    // Router: Handles Navigation & Swipes
     const Router = {
         init: function () {
             this.wrapper = document.getElementById('pageWrapper');
-            this.navLinks = document.querySelectorAll('.nav-link');
-            this.dots = document.querySelectorAll('.dot');
 
-            // Click Events
             document.querySelectorAll('[data-page]').forEach(el => {
                 el.addEventListener('click', (e) => {
                     const page = parseInt(e.currentTarget.getAttribute('data-page'));
@@ -93,21 +65,23 @@
                 });
             });
 
-            // Touch Events (Swipe)
-            this.touchStartX = 0;
-            this.touchEndX = 0;
-            const appContainer = document.getElementById('app-container');
+            // Touch Swipe
+            let touchStartX = 0;
+            const container = document.getElementById('app-container');
 
-            appContainer.addEventListener('touchstart', e => { this.touchStartX = e.changedTouches[0].screenX; }, false);
-            appContainer.addEventListener('touchend', e => {
-                this.touchEndX = e.changedTouches[0].screenX;
-                this.handleSwipe();
+            container.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; }, false);
+            container.addEventListener('touchend', e => {
+                const diff = touchStartX - e.changedTouches[0].screenX;
+                if (Math.abs(diff) > 50) {
+                    if (diff > 0) this.navigate(State.currentPage + 1);
+                    else this.navigate(State.currentPage - 1);
+                }
             }, false);
 
-            // Keyboard Events
+            // Keyboard
             document.addEventListener('keydown', (e) => {
-                if (e.key === 'ArrowRight' || e.key === 'ArrowDown') this.navigate(State.currentPage + 1);
-                if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') this.navigate(State.currentPage - 1);
+                if (e.key === 'ArrowRight') this.navigate(State.currentPage + 1);
+                if (e.key === 'ArrowLeft') this.navigate(State.currentPage - 1);
             });
         },
 
@@ -117,107 +91,140 @@
             State.isAnimating = true;
             State.currentPage = index;
 
-            // Transform
             this.wrapper.style.transform = `translateX(-${State.currentPage * 100}%)`;
+            this.updateUI();
 
-            // Update UI
-            this.updateIndicators();
-
-            // Lock animation
             setTimeout(() => { State.isAnimating = false; }, Config.ANIMATION_SPEED);
 
-            // Trigger Page Specific Events
             if (Config.PAGES[index] === 'stats' && !State.statsAnimated) Dashboard.animateStats();
         },
 
-        handleSwipe: function () {
-            const threshold = 50;
-            const diff = this.touchStartX - this.touchEndX;
-            if (Math.abs(diff) > threshold) {
-                if (diff > 0) this.navigate(State.currentPage + 1); // Swipe Left
-                else this.navigate(State.currentPage - 1); // Swipe Right
-            }
-        },
-
-        updateIndicators: function () {
-            this.navLinks.forEach((link, i) => {
-                if (i === State.currentPage) link.classList.add('active');
-                else link.classList.remove('active');
-            });
-
-            this.dots.forEach((dot, i) => {
-                if (i === State.currentPage) dot.classList.add('active');
-                else dot.classList.remove('active');
-            });
+        updateUI: function () {
+            document.querySelectorAll('.nav-link').forEach((l, i) => l.classList.toggle('active', i === State.currentPage));
+            document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === State.currentPage));
         }
     };
 
-    // Scanner: Core Logic
     const Scanner = {
         init: function () {
             this.input = document.getElementById('msgInput');
             this.btn = document.getElementById('scanBtn');
-            this.workflowContainer = document.getElementById('workflowContainer');
+            this.container = document.getElementById('workflowContainer');
+            this.statusTag = document.getElementById('apiStatus');
 
-            // Quick Chips
-            document.querySelectorAll('.chip').forEach(chip => {
-                chip.addEventListener('click', () => {
-                    this.input.value = chip.getAttribute('data-msg');
+            document.querySelectorAll('.chip').forEach(c => {
+                c.addEventListener('click', () => {
+                    this.input.value = c.getAttribute('data-msg');
                 });
             });
 
-            // Analysis
-            this.btn.addEventListener('click', () => this.analyze());
-            this.renderWorkflowSteps();
+            this.btn.addEventListener('click', () => this.startAnalysis());
+            this.generateSteps();
+            this.checkBackend();
         },
 
-        renderWorkflowSteps: function () {
-            const steps = [
-                { name: 'Detect SMS', sub: 'Reading headers' },
-                { name: 'Analyze Content', sub: 'Processing text' },
-                { name: 'AI Detection', sub: 'Pattern matching' },
-                { name: 'Link Check', sub: 'Domain reputation' },
-                { name: 'Final Action', sub: 'Alert user' }
-            ];
+        checkBackend: async function () {
+            try {
+                // Try to check if backend is alive
+                // Note: Simple GET request to root usually
+                await fetch(Config.API_BASE_URL + '/', { method: 'GET', mode: 'cors' });
+                State.backendAvailable = true;
+                this.statusTag.innerText = "Live API";
+                this.statusTag.style.color = "#00ff88";
+                this.statusTag.style.background = "rgba(0, 255, 136, 0.2)";
+                console.log("Backend Connected");
+            } catch (e) {
+                console.log("Running in Demo Mode");
+                State.backendAvailable = false;
+            }
+        },
 
+        generateSteps: function () {
+            const steps = ['Detect SMS', 'Analyze Content', 'AI Detection', 'Link Check', 'Final Action'];
             let html = '';
             steps.forEach((s, i) => {
-                html += `
-                    <div class="workflow-item" data-step="${i + 1}">
-                        <div class="step-icon">${i + 1}</div>
-                        <div class="step-text">${s.name}<p>${s.sub}</p></div>
-                        <div class="step-status">Pending</div>
-                    </div>
-                `;
+                html += `<div class="workflow-item" id="step-${i}">
+                            <div class="step-icon">${i + 1}</div>
+                            <div class="step-text">${s}<p>Waiting...</p></div>
+                            <div class="step-status">Pending</div>
+                         </div>`;
             });
-            this.workflowContainer.innerHTML = html;
+            this.container.innerHTML = html;
         },
 
-        analyze: async function () {
+        startAnalysis: async function () {
             const text = this.input.value.trim();
             if (!text) return;
 
             this.btn.disabled = true;
             this.btn.innerText = "Processing...";
+            this.generateSteps();
 
-            // Reset UI
-            document.querySelectorAll('.workflow-item').forEach(el => {
-                el.className = 'workflow-item';
-                el.querySelector('.step-status').innerText = 'Pending';
-            });
+            let result;
 
-            // Check if Backend Available
             if (State.backendAvailable) {
-                await this.runBackendAnalysis(text);
+                result = await this.runBackend(text);
             } else {
-                await this.runSimulation(text);
+                result = this.runLocalLogic(text);
+            }
+
+            // Animate Steps based on result
+            for (let i = 0; i < 5; i++) {
+                const stepEl = document.getElementById(`step-${i}`);
+
+                stepEl.classList.add('active');
+                stepEl.querySelector('.step-status').innerText = 'Processing...';
+                stepEl.querySelector('p').innerText = 'Analyzing...';
+
+                await Utils.sleep(400);
+
+                let resultClass = 'success';
+                let statusText = 'Clear';
+
+                if (result.isFraud) {
+                    if (i === 2) { resultClass = 'danger'; statusText = 'Fraud Found'; }
+                    if (i === 3 && result.links.length > 0) { resultClass = 'danger'; statusText = 'Malicious'; }
+                    if (i === 4) { resultClass = 'danger'; statusText = 'BLOCKED'; }
+                } else {
+                    if (i === 4) statusText = 'Safe';
+                }
+
+                stepEl.classList.remove('active');
+                stepEl.classList.add(resultClass);
+                stepEl.querySelector('.step-status').innerText = statusText;
+                stepEl.querySelector('p').innerText = 'Complete';
+            }
+
+            // Show Result
+            if (result.isFraud) {
+                let details = "";
+                if (result.keywords.length > 0) details += "Keywords: " + result.keywords.join(", ");
+                if (result.links.length > 0) details += "\nLinks: " + result.links.join(", ");
+                Modal.show("ATTENTION", details || "Threat detected", true);
+            } else {
+                Modal.show("SAFE", "No malicious content detected.", false);
             }
 
             this.btn.disabled = false;
             this.btn.innerText = "Analyze";
         },
 
-        runBackendAnalysis: async function (text) {
+        runLocalLogic: function (text) {
+            const lowerText = text.toLowerCase();
+            const keywords = ['urgent', 'verify', 'suspend', 'blocked', 'winner', 'click', 'pay', 'lottery', 'kyc', 'password'];
+            const foundKeywords = keywords.filter(k => lowerText.includes(k));
+            const linkRegex = /(https?:\/\/[^\s]+)/g;
+            const foundLinks = text.match(linkRegex) || [];
+            const isFraud = foundKeywords.length > 0 || foundLinks.length > 0;
+
+            return {
+                isFraud: isFraud,
+                keywords: foundKeywords,
+                links: foundLinks
+            };
+        },
+
+        runBackend: async function (text) {
             try {
                 const response = await fetch(Config.API_BASE_URL + '/predict', {
                     method: 'POST',
@@ -225,107 +232,35 @@
                     body: JSON.stringify({ message: text })
                 });
                 const data = await response.json();
-
-                // Fast UI update based on result
-                this.updateStepsUI(data.classification === 'Fraud' ? 'danger' : 'success', data);
-
+                return {
+                    isFraud: data.classification === "Fraud",
+                    keywords: data.suspicious_words,
+                    links: data.detected_links
+                };
             } catch (error) {
-                console.error("API Error, falling back to demo", error);
-                await this.runSimulation(text);
+                console.error("Backend error, fallback to local", error);
+                return this.runLocalLogic(text);
             }
-        },
-
-        runSimulation: async function (text) {
-            const isFraud = text.toLowerCase().includes('urgent') ||
-                text.toLowerCase().includes('pay') ||
-                text.toLowerCase().includes('kyc') ||
-                text.includes('http');
-
-            // Step-by-step Animation
-            const items = document.querySelectorAll('.workflow-item');
-
-            for (let i = 0; i < items.length; i++) {
-                await new Promise(resolve => setTimeout(resolve, 500));
-                items[i].classList.add('active');
-                items[i].querySelector('.step-status').innerText = 'Processing...';
-
-                await new Promise(resolve => setTimeout(resolve, 300));
-
-                let stepClass = 'success';
-                if (isFraud && i === 2) stepClass = 'danger'; // AI Detection step
-                if (isFraud && i === 3) stepClass = 'danger'; // Link Check step
-                if (isFraud && i === 4) stepClass = 'danger'; // Final step
-
-                items[i].classList.remove('active');
-                items[i].classList.add(stepClass);
-                items[i].querySelector('.step-status').innerText = stepClass === 'danger' ? 'ALERT' : 'OK';
-            }
-
-            if (isFraud) {
-                App.modal.show("Malicious content detected in simulation.");
-            } else {
-                App.modal.show("Message appears safe (Simulation).", false);
-            }
-        },
-
-        updateStepsUI: function (status, data) {
-            const items = document.querySelectorAll('.workflow-item');
-            items.forEach((item, i) => {
-                item.classList.add(status);
-                item.querySelector('.step-status').innerText = status === 'danger' ? 'ALERT' : 'OK';
-            });
-            App.modal.show(data.suspicious_words ? "Fraud Detected: " + data.suspicious_words.join(", ") : "Fraud Detected", status === 'danger');
         }
     };
 
-    // Dashboard: Stats & Charts
     const Dashboard = {
         init: function () {
-            this.renderStats();
-            this.initChart();
-        },
-
-        renderStats: function () {
-            const d = Utils.getDemoData.stats;
+            const d = Utils.Data.stats;
             document.getElementById('statsRow').innerHTML = `
                 <div class="stat-card"><div class="stat-num" id="stat1">0</div><div class="stat-label">Scanned</div></div>
                 <div class="stat-card"><div class="stat-num" id="stat2" style="color:var(--rgb-pink)">0</div><div class="stat-label">Frauds</div></div>
                 <div class="stat-card"><div class="stat-num" id="stat3" style="color:var(--rgb-gold)">0</div><div class="stat-label">Blocked</div></div>
             `;
-        },
 
-        animateStats: function () {
-            State.statsAnimated = true;
-            const d = Utils.getDemoData.stats;
-            this.countUp('stat1', d.scanned);
-            this.countUp('stat2', d.frauds);
-            this.countUp('stat3', d.blocked);
-        },
-
-        countUp: function (id, target) {
-            const obj = document.getElementById(id);
-            if (!obj) return;
-            let current = 0;
-            const increment = target / 50;
-            const timer = setInterval(() => {
-                current += increment;
-                if (current >= target) {
-                    current = target;
-                    clearInterval(timer);
-                }
-                obj.innerText = Math.floor(current).toLocaleString();
-            }, 30);
-        },
-
-        initChart: function () {
             const ctx = document.getElementById('mainChart').getContext('2d');
             new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    labels: ['M', 'T', 'W', 'T', 'F', 'S', 'S'],
                     datasets: [{
                         label: 'Threats',
-                        data: [12, 19, 3, 5, 2, 3, 10],
+                        data: [12, 19, 8, 15, 10, 6, 12],
                         borderColor: '#ff0096',
                         backgroundColor: 'rgba(255, 0, 150, 0.1)',
                         tension: 0.4,
@@ -335,112 +270,97 @@
                 options: {
                     responsive: true, maintainAspectRatio: false,
                     plugins: { legend: { display: false } },
-                    scales: {
-                        y: { display: false, beginAtZero: true },
-                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.3)' } }
-                    }
+                    scales: { y: { display: false }, x: { grid: { color: 'rgba(255,255,255,0.05)' } } }
                 }
             });
+        },
+        animateStats: function () {
+            State.statsAnimated = true;
+            const d = Utils.Data.stats;
+            this.countUp('stat1', d.scanned);
+            this.countUp('stat2', d.frauds);
+            this.countUp('stat3', d.blocked);
+        },
+        countUp: (id, target) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            let i = 0;
+            const inc = target / 40;
+            const int = setInterval(() => {
+                i += inc;
+                if (i >= target) { i = target; clearInterval(int); }
+                el.innerText = Math.floor(i).toLocaleString();
+            }, 30);
         }
     };
 
-    // Content Renderer
     const Content = {
         init: function () {
-            this.renderScams();
-            this.renderFeatures();
-            this.renderDots();
-        },
-        renderScams: function () {
-            let html = '';
-            Utils.getDemoData.scams.forEach(s => {
-                html += `
-                    <div class="scam-box">
-                        <div class="scam-header">
-                            <div class="scam-icon">${s.icon}</div>
-                            <div class="scam-title">${s.title}</div>
-                        </div>
-                        <p class="scam-desc">${s.desc}</p>
-                        <span class="tag">${s.tag}</span>
-                    </div>
-                `;
+            let sHtml = '';
+            Utils.Data.scams.forEach(s => {
+                sHtml += `<div class="scam-box"><div class="scam-header"><div class="scam-icon">${s.icon}</div><div class="scam-title">${s.title}</div></div><p class="scam-desc">${s.desc}</p><span class="tag">${s.tag}</span></div>`;
             });
-            document.getElementById('scamsGrid').innerHTML = html;
-        },
-        renderFeatures: function () {
-            let html = '';
-            Utils.getDemoData.features.forEach(f => {
-                html += `
-                    <div class="feature-card">
-                        <div class="f-icon">${f.icon}</div>
-                        <div class="f-content">
-                            <h5>${f.title}</h5>
-                            <p>${f.desc}</p>
-                        </div>
-                    </div>
-                `;
+            document.getElementById('scamsGrid').innerHTML = sHtml;
+
+            let fHtml = '';
+            Utils.Data.features.forEach(f => {
+                fHtml += `<div class="feature-card"><div class="f-icon">${f.icon}</div><div class="f-content"><h5>${f.title}</h5><p>${f.desc}</p></div></div>`;
             });
-            document.getElementById('featureList').innerHTML = html;
-        },
-        renderDots: function () {
-            let html = '';
-            Config.PAGES.forEach((p, i) => {
-                html += `<div class="dot ${i === 0 ? 'active' : ''}" data-page="${i}"></div>`;
-            });
-            document.getElementById('pageIndicator').innerHTML = html;
+            document.getElementById('featureList').innerHTML = fHtml;
+
+            let dHtml = '';
+            Config.PAGES.forEach((p, i) => { dHtml += `<div class="dot ${i === 0 ? 'active' : ''}" data-page="${i}"></div>`; });
+            document.getElementById('pageIndicator').innerHTML = dHtml;
         }
     };
 
-    // Modal Handler
     const Modal = {
         init: function () {
-            this.modal = document.getElementById('attentionModal');
-            this.desc = document.getElementById('threatDesc');
-            this.btn = document.getElementById('closeAttention');
+            this.el = document.getElementById('resultModal');
+            this.box = document.getElementById('modalContent');
+            this.title = document.getElementById('modalTitle');
+            this.text = document.getElementById('modalText');
+            this.desc = document.getElementById('modalDesc');
+            this.btn = document.getElementById('closeModalBtn');
 
             this.btn.addEventListener('click', () => this.hide());
         },
-        show: function (text, isDanger = true) {
-            this.desc.innerText = text;
+        show: function (title, desc, isDanger) {
+            this.title.innerText = title;
+            this.text.innerText = isDanger ? "Security Alert" : "Analysis Complete";
+            this.desc.innerText = desc;
+
             if (isDanger) {
-                this.modal.classList.add('show');
-                // Vibration API for mobile
-                if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+                this.box.classList.remove('safe-mode');
+                this.title.style.color = "var(--rgb-red)";
             } else {
-                alert("SAFE: " + text);
+                this.box.classList.add('safe-mode');
+                this.title.style.color = "var(--rgb-green)";
             }
+
+            this.el.classList.add('show');
+            if (navigator.vibrate && isDanger) navigator.vibrate([200]);
         },
         hide: function () {
-            this.modal.classList.remove('show');
+            this.el.classList.remove('show');
         }
     };
 
     // ================================================
-    //   4. APP INITIALIZATION
+    //   4. APP INIT
     // ================================================
     const App = {
-        init: async function () {
-            // 1. Check Backend
-            await Utils.checkBackend();
-
-            // 2. Init Modules
+        init: function () {
             Router.init();
             Scanner.init();
             Content.init();
             Dashboard.init();
             Modal.init();
-
-            // 3. Expose Router globally for HTML onclick
-            window.App = { router: Router, modal: Modal };
-
-            // 4. Hide Preloader
-            setTimeout(() => {
-                document.getElementById('preloader').classList.add('loaded');
-            }, 1500);
+            window.App = { router: Router };
+            setTimeout(() => { document.getElementById('preloader').classList.add('loaded'); }, 2000);
         }
     };
 
-    // Start App when DOM is ready
     document.addEventListener('DOMContentLoaded', App.init);
 
 })();
