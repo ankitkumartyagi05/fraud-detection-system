@@ -9,9 +9,8 @@
     //   1. CONFIGURATION
     // ================================================
     const Config = {
-        // CHANGE THIS URL when deploying backend (e.g., to Render.com)
-        // Example: 'https://your-app.onrender.com'
-        API_BASE_URL: 'http://localhost:5000',
+        /
+        API_BASE_URL: 'backend-production-4684.up.railway.app',
 
         PAGES: ['home', 'scanner', 'threats', 'features', 'stats'],
         ANIMATION_SPEED: 600
