@@ -13,7 +13,6 @@ The system analyzes incoming messages, detects fraud patterns using Machine Lear
 ---
 
 # 🌐 Live Demo
-# 🌐 Live Demo
 
 ### 🚀 Frontend Demo  
 🔗 **[Open Live Website](https://ankitkumartyagi05.github.io/fraud-detection-system/)**
