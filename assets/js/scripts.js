@@ -9,7 +9,7 @@
     //   1. CONFIGURATION
     // ================================================
     const Config = {
-        /
+        
         API_BASE_URL: 'backend-production-4684.up.railway.app',
 
         PAGES: ['home', 'scanner', 'threats', 'features', 'stats'],
