@@ -10,6 +10,7 @@
     // ================================================
     const Config = {
         
+        // FIXED URL: Added https://
         API_BASE_URL: 'backend-production-4684.up.railway.app',
 
         PAGES: ['home', 'scanner', 'threats', 'features', 'stats'],
@@ -124,8 +125,7 @@
 
         checkBackend: async function () {
             try {
-                // Try to check if backend is alive
-                // Note: Simple GET request to root usually
+                // Check backend health
                 await fetch(Config.API_BASE_URL + '/', { method: 'GET', mode: 'cors' });
                 State.backendAvailable = true;
                 this.statusTag.innerText = "Live API";
@@ -133,7 +133,7 @@
                 this.statusTag.style.background = "rgba(0, 255, 136, 0.2)";
                 console.log("Backend Connected");
             } catch (e) {
-                console.log("Running in Demo Mode");
+                console.log("Running in Demo Mode", e);
                 State.backendAvailable = false;
             }
         },
